@@ -18,6 +18,7 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 | 09/11/2026 | Bruno | Claude Code | Corrigir uma frase da issue 1: a régua indica a hora de seguir o plano da rua, não de fazer a chamada | Issue 1 do `elo-app` | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Subir o projeto para o GitHub, com os detalhes para quem cuida da API, e preencher os integrantes | Este repositório, o `README.md` e o `integrantes.txt` | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Corrigir as issues 4 e 1 do `elo-app`, que davam as rotas da régua como parte da API em C# | Issues 4 e 1 do `elo-app` e o item 8 dos pontos em aberto do `README.md` | A conferir |
+| 09/11/2026 | Bruno | Claude Code | Explicar os repositórios da organização e deixar claro qual é o de IoT | Descrição deste repositório e um parágrafo no topo do `README.md` | A conferir |
 
 ## O que a IA decidiu sozinha e a equipe precisa conferir
 

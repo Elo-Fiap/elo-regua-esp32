@@ -2,9 +2,11 @@
 
 Parte de Physical Computing: IoT & IoB do projeto Elo (Global Solution 2026.2, FIAP). O Elo é um app que faz a chamada das ruas de um bairro durante chuva forte. Esta régua é a parte física do projeto: um ESP32 com sensor ultrassônico, instalado acima do córrego, que mede o nível da água e avisa no local quando ele chega ao limite.
 
+**Este é o repositório de IoT do grupo.** Entre os repositórios do grupo, o programa do ESP32 e o circuito ficam só aqui. O `elo-alertas` é outra entrega, a de SOA: o serviço que recebe as leituras desta régua. Ele não tem código de ESP32.
+
 - **Simulação no Wokwi (pública):** https://wokwi.com/projects/479922926737544193
 - **App:** [Elo-Fiap/elo-app](https://github.com/Elo-Fiap/elo-app)
-- **Serviço que recebe as leituras:** [Elo-Fiap/elo-alertas](https://github.com/Elo-Fiap/elo-alertas)
+- **Serviço que recebe as leituras (entrega de SOA):** [Elo-Fiap/elo-alertas](https://github.com/Elo-Fiap/elo-alertas)
 
 ![Simulação no Wokwi com o nível em 1,42 m: LED vermelho aceso, LCD com "ACIMA DO LIMITE" e as leituras no Monitor Serial](docs/simulacao.jpg)
 
