@@ -17,6 +17,7 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 | 09/11/2026 | Bruno | Claude Code | Ajustar os comentários do programa e atualizar o projeto no Wokwi | `sketch.ino`, só comentários; o código não mudou | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Corrigir uma frase da issue 1: a régua indica a hora de seguir o plano da rua, não de fazer a chamada | Issue 1 do `elo-app` | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Subir o projeto para o GitHub, com os detalhes para quem cuida da API, e preencher os integrantes | Este repositório, o `README.md` e o `integrantes.txt` | A conferir |
+| 09/11/2026 | Bruno | Claude Code | Corrigir as issues 4 e 1 do `elo-app`, que davam as rotas da régua como parte da API em C# | Issues 4 e 1 do `elo-app` e o item 8 dos pontos em aberto do `README.md` | A conferir |
 
 ## O que a IA decidiu sozinha e a equipe precisa conferir
 
@@ -31,7 +32,7 @@ A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do
 ## Erros da IA que a equipe deve conhecer
 
 - **Roteiro do vídeo.** A primeira versão mandava abrir a aba Agora do app para mostrar "acima do limite", que só aparece na aba Bairro, e dizia que a régua indica a hora de fazer a chamada. No app, ela indica a hora de seguir o plano da rua. Corrigido em 08/11/2026.
-- **"A API não existe."** A revisão de 08/11/2026 e a issue 4 do `elo-app` disseram que a API que recebe as leituras ainda não existia. O Elo Alertas já tinha a rota `POST /leituras` desde 06/11/2026; a IA tinha olhado só o repositório do app. Corrigido neste repositório em 09/11/2026.
+- **"A API não existe."** A revisão de 08/11/2026 e a issue 4 do `elo-app` disseram que a API que recebe as leituras ainda não existia. O Elo Alertas já tinha a rota `POST /leituras` desde 06/11/2026; a IA tinha olhado só o repositório do app. Corrigido em 09/11/2026 neste repositório e nas issues 4 e 1 do `elo-app`. A issue 1 dizia, em "Depende de", que as rotas eram da API de C#.
 
 ## O que foi testado na simulação
 

@@ -210,6 +210,8 @@ Do lado da régua, depois que o endereço e a chave existirem:
 3. Testar na simulação: `204` no servidor e o mesmo número no `GET /regua` e no app.
 4. Atualizar o projeto no Wokwi, este repositório e as falas do roteiro do vídeo que dizem que a régua ainda não envia.
 
+As tarefas dos dois lados estão na [issue 4 do `elo-app`](https://github.com/Elo-Fiap/elo-app/issues/4).
+
 ### Como testar a rota sem a régua
 
 Com o Elo Alertas rodando no computador (veja o README dele), este pedido é igual ao que a régua vai mandar:
@@ -238,7 +240,7 @@ A resposta deve trazer `"nivelMetros":1.42` e `"limiteMetros":1.2`. Com esses do
 5. **Régua sem leitura.** Quando o sensor não responde, a régua não envia nada. O servidor e o app continuam com a última leitura e a hora dela. O contrato não tem um jeito de dizer "régua sem leitura".
 6. **Limite em dois lugares.** O 1,20 m está no programa da régua, para o buzzer funcionar sem internet, e no banco do Elo Alertas, de onde o app lê. Se mudar em um, precisa mudar no outro.
 7. **Nível de atenção.** O 1,00 m existe só na régua.
-8. **Issue 4 do `elo-app`.** Ela diz que a API que recebe as leituras ainda não existe. Foi escrita antes de olharmos o Elo Alertas e precisa ser corrigida. Vale o que está neste README.
+8. **README do app.** A tabela "De onde vêm os dados" ainda coloca a régua na API do bairro (C#) e diz que essa API não existe. A rota que recebe a leitura já existe, no Elo Alertas. O texto precisa de ajuste depois da decisão do item 1.
 
 ## O que foi testado
 
