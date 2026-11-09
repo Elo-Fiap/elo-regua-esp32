@@ -1,0 +1,3 @@
+# Mantém as quebras de linha iguais em todos os computadores (LF), como no Wokwi.
+* text=auto eol=lf
+*.jpg binary

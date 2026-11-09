@@ -1,0 +1,3 @@
+# Bibliotecas do projeto no Wokwi.
+# No Wokwi: aba "Library Manager", botão "+", procurar e escolher a biblioteca abaixo.
+LiquidCrystal I2C
