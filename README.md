@@ -36,7 +36,7 @@ flowchart LR
 
 A linha cheia já funciona. As tracejadas dependem de a régua enviar pela rede, que ainda não acontece: hoje a régua mostra a leitura só no Monitor Serial.
 
-As duas APIs aceitam o mesmo pedido da régua. Os dois serviços recebem `POST /leituras` no mesmo formato. Quem recebe de verdade na demonstração ainda é decisão do grupo (veja os [pontos em aberto](#pontos-em-aberto-para-o-grupo)).
+Os dois serviços recebem `POST /leituras` no mesmo formato e com o mesmo header `X-Chave-Dispositivo`. Quem recebe de verdade na demonstração ainda é decisão do grupo (veja os [pontos em aberto](#pontos-em-aberto-para-o-grupo)).
 
 **Onde a régua fica no mapa.** O painel web mostra a régua no mapa do bairro e o gráfico do nível. A posição (latitude e longitude), a rua e os níveis de atenção e de limite ficam no cadastro da régua no servidor, não no programa. O ESP32 continua mandando só `reguaId` e `nivelMetros`. Nos dados de exemplo, a `regua-exemplo` está na Rua das Palafitas, com limite de 1,20 m e atenção em 1,00 m, os mesmos números do `sketch.ino`.
 
@@ -136,7 +136,7 @@ Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LI
 ### Resumo
 
 - A régua monta a leitura no formato do contrato do app (`docs/contrato-api.md` do `elo-app`, seção "O que o ESP32 envia").
-- O Elo Alertas já tem a rota que recebe essa leitura (`POST /leituras`) e a que o app lê (`GET /regua`), desde 06/11/2026.
+- O Elo Alertas já tem a rota que recebe essa leitura (`POST /leituras`) e a de consulta (`GET /regua`), desde 06/11/2026.
 - A régua **ainda não envia nada pela rede**. Faltam um endereço público e uma chave de demonstração.
 - A API em C# também tem `POST /leituras` e `GET /regua`, no mesmo formato. Se o grupo decidir que quem recebe a leitura é ela, o pedido da régua é o mesmo; só muda o endereço.
 
@@ -241,13 +241,13 @@ A resposta deve trazer `"nivelMetros":1.42` e `"limiteMetros":1.2`. Com esses do
 ## Pontos em aberto para o grupo
 
 1. **Quem recebe a leitura.** O app usa um endereço só (`EXPO_PUBLIC_API_URL`) para `/situacao`, `/chamadas`, `/regua` e `/ruas/{id}/plano`, e esse endereço é a API em C#. A API em C# tem também o `POST /leituras`, e é dela que o painel web lê a régua. O Elo Alertas tem as mesmas duas rotas da régua. Se a régua mandar para o Elo Alertas, o app e o painel não veem a leitura, porque os dois serviços não trocam dados. Para a régua tanto faz, desde que quem receba siga o formato acima.
-2. **Uma régua só.** O app chama `GET /regua` sem dizer qual régua. O Elo Alertas responde com a primeira régua por ordem de id. Com uma régua, funciona.
+2. **Uma régua só.** O app chama `GET /regua` sem dizer qual régua. A API em C# responde com a régua configurada em `ContratoDoApp:ReguaPadrao`, e o Elo Alertas, com a primeira por ordem de id. Com uma régua, funciona.
 3. **Chave em projeto público.** Veja o item 2 de "O que falta para ligar".
 4. **Leitura extra quando a situação muda.** Não está no contrato. Se o nível ficar oscilando em volta de 1,00 m ou de 1,20 m, a régua pode publicar até uma leitura por segundo. Se isso atrapalhar o servidor, dá para limitar no programa.
 5. **Régua sem leitura.** Quando o sensor não responde, a régua não envia nada. O servidor e o app continuam com a última leitura e a hora dela. O contrato não tem um jeito de dizer "régua sem leitura".
 6. **Limite em mais de um lugar.** O 1,20 m está no programa da régua, para o buzzer funcionar sem internet, e no cadastro da régua no servidor (Elo Alertas e API em C#), de onde o app e o painel leem. Se mudar em um, precisa mudar nos outros.
-7. **Nível de atenção.** O 1,00 m estava só na régua. Agora também fica no cadastro da régua nos dois serviços (`atencaoMetros`), para o app e o painel mostrarem "atenção" no mesmo ponto em que o LED amarelo acende. Isso está nas branches `feat/painel-admin` da API em C# e `feat/dados-do-painel` do Elo Alertas, ainda sem merge. A mesma regra do limite vale aqui: se mudar no programa, mude no cadastro.
-8. **README do app.** A tabela "De onde vêm os dados" colocava a régua na API do bairro e dizia que essa API não existia. A API em C# existe e repassa a régua; o README do app foi corrigido na branch `feat/dados-reais` do `elo-app`.
+7. **Nível de atenção.** O 1,00 m estava só na régua. Agora também fica no cadastro da régua nos dois serviços (`atencaoMetros`), para o app e o painel mostrarem "atenção" no mesmo ponto em que o LED amarelo acende. A mesma regra do limite vale aqui: se mudar no programa, mude no cadastro.
+8. **README do app.** A tabela "De onde vêm os dados" colocava a régua na API do bairro e dizia que essa API não existia. A API em C# existe e também recebe e devolve a leitura da régua. O README do app já foi corrigido.
 
 ## O que foi testado
 
