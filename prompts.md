@@ -20,6 +20,7 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 | 09/11/2026 | Bruno | Claude Code | Corrigir as issues 4 e 1 do `elo-app`, que davam as rotas da régua como parte da API em C# | Issues 4 e 1 do `elo-app` e o item 8 dos pontos em aberto do `README.md` | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Explicar os repositórios da organização e deixar claro qual é o de IoT | Descrição deste repositório e um parágrafo no topo do `README.md` | A conferir |
 | 14/11/2026 | João | Claude Code | Atualizar os projetos do grupo para receber os dados do painel web de administração (posição da régua no mapa, nível de atenção) | Só o `README.md`: o diagrama, onde a posição da régua fica cadastrada e os pontos em aberto 1, 6, 7 e 8. O `sketch.ino` não mudou | A conferir |
+| 15/11/2026 | Bruno | Claude Code | Conferir se o app já lê a régua pela API e revisar a régua contra o app, a documentação e os requisitos da GS | Conferência com a API em C# no `README.md`, roteiro do vídeo atualizado (o app lê da API em C#; aviso na aba Agora; "em atenção") e issue 4 do `elo-app` | A conferir |
 
 ## O que a IA decidiu sozinha e a equipe precisa conferir
 
@@ -35,6 +36,7 @@ A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do
 
 - **Roteiro do vídeo.** A primeira versão mandava abrir a aba Agora do app para mostrar "acima do limite", que só aparece na aba Bairro, e dizia que a régua indica a hora de fazer a chamada. No app, ela indica a hora de seguir o plano da rua. Corrigido em 08/11/2026.
 - **"A API não existe."** A revisão de 08/11/2026 e a issue 4 do `elo-app` disseram que a API que recebe as leituras ainda não existia. O Elo Alertas já tinha a rota `POST /leituras` desde 06/11/2026; a IA tinha olhado só o repositório do app. Corrigido em 09/11/2026 neste repositório e nas issues 4 e 1 do `elo-app`. A issue 1 dizia, em "Depende de", que as rotas eram da API de C#.
+- **"O app vai ler pelo Elo Alertas."** O roteiro do vídeo (08/11/2026) dizia que o app leria a régua pelo Elo Alertas. O app lê pela API em C#, que também recebe as leituras. Corrigido em 15/11/2026.
 
 ## O que foi testado na simulação
 
@@ -45,4 +47,4 @@ A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do
 
 ## O que não foi feito
 
-- O envio da leitura pela rede. O Elo Alertas, que recebe as leituras, roda hoje no computador de quem desenvolve, e o ESP32 do Wokwi só alcança endereço público. Em um teste com um serviço público de eco, a conexão segura (HTTPS) levou cerca de 7 segundos no ESP32 simulado e falhou enquanto o buzzer tocava. O envio precisa ser feito e testado com o endereço real do Elo Alertas.
+- O envio da leitura pela rede. A API em C# e o Elo Alertas, que recebem as leituras, rodam hoje no computador de quem desenvolve, e o ESP32 do Wokwi só alcança endereço público. Em um teste com um serviço público de eco, a conexão segura (HTTPS) levou cerca de 7 segundos no ESP32 simulado e falhou enquanto o buzzer tocava. O envio precisa ser feito e testado com o endereço público da API (a VM Linux do grupo), em HTTP simples.

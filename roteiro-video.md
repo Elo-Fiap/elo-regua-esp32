@@ -7,7 +7,7 @@ As falas são sugestões. Digam com as palavras de vocês.
 ## Antes de gravar
 
 - Abrir o projeto no Wokwi pelo link público, em janela anônima, para conferir que o link abre sem login.
-- Deixar o app do Elo aberto na aba Bairro, em modo de exemplo. É nela que a régua aparece completa: "1,42 m, limite 1,20 m, acima do limite", com a hora da medida logo abaixo. A aba Agora mostra só "1,42 m, limite 1,20 m".
+- Deixar o app do Elo aberto em modo de exemplo. Na aba Agora, o aviso "Exemplo: régua acima do limite" aparece no alto, com nível, limite, local, hora da medida e o atalho "Ver o plano da rua". Na aba Bairro, a linha da régua mostra "1,42 m, limite 1,20 m, acima do limite". Sem a API ligada, os dois são dados de exemplo, e o app diz isso na tela.
 - Ao apertar o play, o Wokwi compila o programa antes de rodar. Nos testes isso levou de 10 a 40 segundos. Vale deixar a simulação já rodando antes de gravar a parte 3, ou cortar a espera na edição.
 - No Wokwi, o sensor começa em 250 cm. Para mudar: clicar no HC-SR04 e mexer no controle "Distance". As setas do teclado mudam de 1 em 1 cm, o que ajuda a acertar o número.
 - Testar o volume do buzzer antes de gravar. Ele fica em `"volume": "0.2"` no `diagram.json` e aceita de 0.01 a 1.0.
@@ -34,8 +34,8 @@ Tela: o diagrama no Wokwi, ainda parado. Depois o app, na linha da régua.
 - O sensor mede a distância até a água. O programa calcula o nível: altura do sensor (3,00 m) menos a distância medida.
 - O limite da régua é 1,20 m, o mesmo que o app mostra. Na aba Plano, a rota de saída aparece sob o título "Quando a régua passar de 1,20 m": a régua é o sinal para seguir o plano da rua.
 - No local, três LEDs e o LCD mostram a situação, e o buzzer avisa quem está perto. Isso funciona sem internet.
-- A leitura sai no formato do contrato da API do Elo (`POST /leituras`), com o id da régua e o nível em metros. Quem recebe essa leitura é o Elo Alertas, o serviço do grupo que já tem essa rota pronta, e é por ele que o app vai ler.
-- Dizer com clareza o estado atual: hoje o app mostra dado de exemplo e a régua mostra a leitura no Monitor Serial. O envio por Wi-Fi entra quando o Elo Alertas estiver em endereço público.
+- A leitura sai no formato do contrato da API do Elo (`POST /leituras`), com o id da régua e o nível em metros. A API em C# do grupo já recebe essa leitura, e é dela que o app e o painel web leem a régua (`GET /regua`). O Elo Alertas, da matéria de SOA, tem a mesma rota.
+- Dizer com clareza o estado atual: hoje o app mostra dado de exemplo e a régua mostra a leitura no Monitor Serial. O envio por Wi-Fi entra quando a API estiver em endereço público (a VM Linux do grupo). Se até a gravação o envio estiver funcionando, mostrar o número da régua chegando ao app.
 
 ## Parte 3. Demonstração no Wokwi (1:40 a 3:30)
 
@@ -44,21 +44,21 @@ Tela: o Wokwi com a simulação rodando e o Monitor Serial visível.
 | Tempo | O que fazer | O que aparece | O que dizer |
 | --- | --- | --- | --- |
 | 1:40 | Iniciar a simulação. Sensor em 250 cm. | LCD "Nivel: 0,50 m" e "NORMAL". LED verde. Sem som. No Serial, a primeira leitura. | Córrego baixo: situação normal. A leitura já sai no formato da API. |
-| 2:05 | Sensor em 200 cm. | "Nivel: 1,00 m" e "ATENCAO". LED amarelo. Um bip curto a cada 1,5 s. Nova leitura no Serial. | A partir de 1,00 m a régua avisa que a água está subindo. |
+| 2:05 | Sensor em 200 cm. | "Nivel: 1,00 m" e "ATENCAO". LED amarelo. Um bip curto a cada 1,5 s. Nova leitura no Serial. | A partir de 1,00 m a régua avisa que a água está subindo. O app conhece esse mesmo nível: com a API ligada, ele mostra "em atenção" no ponto em que o LED amarelo acende. |
 | 2:30 | Sensor em 181 cm e depois 180 cm. | Em 181 cm: "1,19 m", ainda atenção. Em 180 cm: "1,20 m" e "ACIMA DO LIMITE". LED vermelho. Bip rápido. | O alarme dispara exatamente no limite de 1,20 m, a mesma regra do app. |
-| 2:55 | Sensor em 158 cm. Mostrar a aba Bairro do app ao lado. | "Nivel: 1,42 m" na hora. No Serial, a leitura com `"nivelMetros":1.42` aparece em até 10 s e se repete a cada 10 s. | É o mesmo número do exemplo fixo que o app mostra hoje: "1,42 m, limite 1,20 m, acima do limite". Quando a régua estiver ligada ao Elo Alertas, esse número virá dela. Acima do limite a régua repete a leitura a cada 10 s. |
+| 2:55 | Sensor em 158 cm. Mostrar o app ao lado: o aviso da régua na aba Agora. | "Nivel: 1,42 m" na hora. No Serial, a leitura com `"nivelMetros":1.42` aparece em até 10 s e se repete a cada 10 s. | É o mesmo número do exemplo fixo que o app mostra hoje: "1,42 m, limite 1,20 m, acima do limite", com o aviso no alto da aba Agora. Quando a régua estiver ligada à API, esse número virá dela. Acima do limite a régua repete a leitura a cada 10 s, e o app busca a régua a cada 10 s. |
 | 3:15 | Sensor de volta a 250 cm. | "0,50 m", "NORMAL", LED verde, silêncio. | A água baixou e o alarme para sozinho. No normal, o intervalo da leitura volta a 30 s (basta dizer; não dá tempo de mostrar). |
 
 ## Fecho (3:30 a 3:40)
 
 - A régua avisa no local, mesmo sem internet, e dá ao Elo um número medido: é o sinal para seguir o plano da rua.
-- Próximo passo: ligar o envio da leitura ao Elo Alertas, o serviço do grupo que recebe as leituras.
+- Próximo passo: ligar o envio da leitura à API do grupo, em endereço público, para o número chegar ao app e ao painel sem ninguém digitar.
 
 ## Perguntas prováveis
 
 - **"O Elo não cria alertas próprios. E o buzzer?"** O app continua sem criar alerta: ele só mostra a leitura. Quem avisa é o aparelho no local, a partir de uma medida, como a proposta descreve ("a água avisa sozinha").
-- **"O que é o nível de atenção?"** É um aviso só da régua, a partir de 1,00 m. O app tem apenas "acima do limite".
-- **"A leitura já chega ao app?"** Ainda não. A régua mostra a leitura no formato do contrato; o envio por Wi-Fi depende de o Elo Alertas, o serviço que recebe as leituras, ter endereço público.
+- **"O que é o nível de atenção?"** É o aviso a partir de 1,00 m, antes do limite. A régua acende o LED amarelo, e o app, com a API ligada, mostra "em atenção" no mesmo ponto.
+- **"A leitura já chega ao app?"** Ainda não. A régua mostra a leitura no formato do contrato, e a API em C# já recebe esse formato; o envio por Wi-Fi depende de a API estar em endereço público.
 
 ## Conferência da entrega
 
