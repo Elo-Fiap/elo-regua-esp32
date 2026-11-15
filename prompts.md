@@ -19,6 +19,7 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 | 09/11/2026 | Bruno | Claude Code | Subir o projeto para o GitHub, com os detalhes para quem cuida da API, e preencher os integrantes | Este repositório, o `README.md` e o `integrantes.txt` | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Corrigir as issues 4 e 1 do `elo-app`, que davam as rotas da régua como parte da API em C# | Issues 4 e 1 do `elo-app` e o item 8 dos pontos em aberto do `README.md` | A conferir |
 | 09/11/2026 | Bruno | Claude Code | Explicar os repositórios da organização e deixar claro qual é o de IoT | Descrição deste repositório e um parágrafo no topo do `README.md` | A conferir |
+| 14/11/2026 | João | Claude Code | Atualizar os projetos do grupo para receber os dados do painel web de administração (posição da régua no mapa, nível de atenção) | Só o `README.md`: o diagrama, onde a posição da régua fica cadastrada e os pontos em aberto 1, 6, 7 e 8. O `sketch.ino` não mudou | A conferir |
 
 ## O que a IA decidiu sozinha e a equipe precisa conferir
 
