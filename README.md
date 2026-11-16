@@ -18,9 +18,9 @@ Parte de Physical Computing: IoT & IoB do projeto Elo (Global Solution 2026.2, F
 | --- | --- |
 | Circuito e programa no Wokwi | Prontos e testados na simulação. Iguais aos deste repositório (conferido em 15/11/2026) |
 | Aviso no local (LEDs, LCD e buzzer) | Funciona sem internet |
-| Leitura no formato do `POST /leituras` | Aparece no Monitor Serial |
+| Leitura no formato do `POST /leituras` | Aparece no Monitor Serial e é enviada por Wi-Fi |
 | Quem recebe a leitura | A API em C# e o Elo Alertas têm a rota `POST /leituras`. O app e o painel leem a régua da API em C# |
-| Envio da leitura pela rede | **Não feito.** Falta a API em C# em endereço público (VM Linux), com a chave configurada. Veja [Para quem cuida da API](#para-quem-cuida-da-api) |
+| Envio da leitura pela rede | **Feito e testado** em 15/11/2026 contra um serviço público de eco, por HTTP simples: 12 envios, todos com resposta 200, entre 0,9 s e 1,2 s, inclusive com o buzzer tocando. Falta apontar para a API em C# quando ela tiver endereço público (VM Linux) e chave. Veja [Para quem cuida da API](#para-quem-cuida-da-api) |
 | App | Já mostra a régua: aviso na aba Agora acima do limite, "em atenção" a partir de 1,00 m, atualização a cada 30 s (10 s acima do limite) |
 | Vídeo de até 4 minutos | A gravar. Roteiro em [`roteiro-video.md`](./roteiro-video.md) |
 | Entrega no Teams | Até 19/11/2026, 23h55 |
@@ -36,7 +36,7 @@ flowchart LR
     PAINEL["Painel web (elo-admin)"] -.->|"GET /api/admin/instantaneo"| BAIRRO
 ```
 
-A linha cheia já funciona. As tracejadas dependem de a régua enviar pela rede, que ainda não acontece: hoje a régua mostra a leitura só no Monitor Serial.
+A linha cheia já funciona. As tracejadas dependem de a API estar em um endereço que a régua alcance: o programa já envia a leitura por Wi-Fi, hoje para um serviço público de eco, porque a API ainda não tem endereço público.
 
 Os dois serviços recebem `POST /leituras` no mesmo formato e com o mesmo header `X-Chave-Dispositivo`. Quem recebe de verdade na demonstração ainda é decisão do grupo (veja os [pontos em aberto](#pontos-em-aberto-para-o-grupo)).
 
@@ -62,7 +62,7 @@ Na aba Plano do app, a rota de saída aparece sob o título "Quando a régua pas
 | | SCL | GPIO 22 |
 | | VCC e GND | 5V e GND |
 
-A placa é a ESP32 DevKit C v4 do Wokwi. A única biblioteca é a `LiquidCrystal I2C`.
+A placa é a ESP32 DevKit C v4 do Wokwi. A única biblioteca extra é a `LiquidCrystal I2C`; o Wi-Fi e o HTTP vêm com o ESP32.
 
 No circuito de verdade, o ESP32 trabalha em 3,3 V e não pode receber 5 V. O ECHO do HC-SR04 precisaria de um divisor de tensão, e os fios SDA e SCL do LCD, de um conversor de nível. No simulador não precisa.
 
@@ -75,7 +75,7 @@ No circuito de verdade, o ESP32 trabalha em 3,3 V e não pode receber 5 V. O ECH
 | Acima do limite | 1,20 m ou mais | vermelho | `ACIMA DO LIMITE` | bip rápido e agudo (0,2 s tocando, 0,2 s em silêncio) | a cada 10 s |
 | Sem leitura | o sensor não respondeu | todos apagados | `SEM LEITURA` | silêncio | nenhuma leitura sai |
 
-- A linha 1 do LCD mostra o nível, com vírgula, como no app: `Nivel: 1,42 m`.
+- A linha 1 do LCD mostra o nível, com vírgula, como no app: `Nivel: 1,42 m`. No canto direito dela, `*` quer dizer que o último envio pela rede deu certo, e `!`, que falhou.
 - Quando a situação muda, a leitura sai na hora, sem esperar o intervalo.
 - A regra do limite é a mesma do app: está acima quando o nível é maior ou igual ao limite. Em 1,19 m ainda é atenção; em 1,20 m o alarme dispara.
 - O nível de atenção (1,00 m) também está no cadastro da régua na API em C# e no Elo Alertas (`atencaoMetros`). O app mostra "em atenção" no mesmo ponto em que o LED amarelo acende. Se mudar `ATENCAO_CM` no programa, mude também no cadastro.
@@ -94,17 +94,24 @@ No circuito de verdade, o ESP32 trabalha em 3,3 V e não pode receber 5 V. O ECH
 | 180 cm | 1,20 m | Acima do limite: LED vermelho, bip rápido |
 | 158 cm | 1,42 m | Acima do limite. É o mesmo número do exemplo do app |
 
-O Monitor Serial mostra a leitura no formato que a API recebe. Saída da simulação em 09/11/2026:
+Ao ligar, o ESP32 conecta na rede `Wokwi-GUEST` do simulador (cerca de 2 s) e passa a enviar cada leitura para o endereço em `URL_LEITURAS`. O Monitor Serial mostra a leitura no formato que a API recebe e o resultado de cada envio. Saída da simulação em 15/11/2026, com o envio para o serviço de eco:
 
 ```text
 Elo - regua de nivel do corrego
 Regua regua-exemplo | sensor a 3,00 m | limite 1,20 m | atencao a partir de 1,00 m
 A leitura aparece aqui no formato que a API do Elo recebe (POST /leituras).
-[   2 s] Situacao: NORMAL | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":0.50}
-[  32 s] Situacao: NORMAL | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":0.50}
-[  44 s] Situacao: ACIMA DO LIMITE | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":1.42}
-[  54 s] Situacao: ACIMA DO LIMITE | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":1.42}
+Wi-Fi conectado em 1900 ms. Envio das leituras para http://httpbin.org/post
+[   5 s] Situacao: NORMAL | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":0.50}
+[   7 s] Envio OK: HTTP 200 em 1197 ms.
+[  35 s] Situacao: NORMAL | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":0.50}
+[  36 s] Envio OK: HTTP 200 em 974 ms.
+[  66 s] Situacao: ACIMA DO LIMITE | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":1.42}
+[  67 s] Envio OK: HTTP 200 em 955 ms.
+[  76 s] Situacao: ACIMA DO LIMITE | Leitura para POST /leituras: {"reguaId":"regua-exemplo","nivelMetros":1.42}
+[  77 s] Envio OK: HTTP 200 em 954 ms.
 ```
+
+Com a API do Elo no lugar do eco, a resposta esperada é `HTTP 204`.
 
 Para montar em um projeto novo do Wokwi: crie um projeto de ESP32, cole o `sketch.ino` e o `diagram.json` e, na aba "Library Manager", adicione a biblioteca `LiquidCrystal I2C`.
 
@@ -118,8 +125,9 @@ O `sketch.ino` e o `diagram.json` deste repositório são iguais aos do projeto 
 4. **Situação.** 120 cm ou mais: acima do limite. De 100 a 119 cm: atenção. Menos que isso: normal. Se nenhuma das 5 leituras voltou: sem leitura.
 5. **Aviso no local.** Os LEDs e o LCD mudam a cada medida. O buzzer é conferido a todo instante, sem `delay`, para o resto do programa não parar.
 6. **Leitura para a API.** O programa monta o texto do `POST /leituras` e mostra no Monitor Serial: na hora em que a situação muda e, depois, a cada 30 s (10 s acima do limite).
+7. **Envio pela rede.** A leitura entra em uma fila, e uma tarefa separada, no outro núcleo do ESP32, faz o `POST` com o header `X-Chave-Dispositivo`. Assim um envio demorado não para o sensor, os LEDs nem o buzzer. Qualquer resposta 2xx é sucesso (`*` no LCD); recusa, falta de rede ou 5 s sem resposta é falha (`!` no LCD), com o motivo no Serial. A régua não repete o envio: a próxima leitura já sai no intervalo. Com `URL_LEITURAS` vazia, o envio fica desligado.
 
-Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LIMITE_CM`, `ATENCAO_CM` e os intervalos. A altura, o limite e o nível de atenção são valores de exemplo.
+Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LIMITE_CM`, `ATENCAO_CM`, os intervalos e, para a rede, `WIFI_REDE`, `URL_LEITURAS` e `CHAVE_DISPOSITIVO`. A altura, o limite e o nível de atenção são valores de exemplo.
 
 ## Arquivos
 
@@ -140,9 +148,9 @@ Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LI
 - A régua monta a leitura no formato do contrato do app (`docs/contrato-api.md` do `elo-app`, seção "O que o ESP32 envia").
 - Dois serviços do grupo recebem essa leitura (`POST /leituras`) e respondem a consulta (`GET /regua`), no mesmo formato: a API em C# (`elo-api-csharp`, desde 10/11/2026) e o Elo Alertas (`elo-alertas`, desde 06/11/2026). Eles não trocam dados entre si.
 - O app e o painel web leem a régua da API em C#. Por isso a sugestão é a régua mandar para ela. A decisão é do grupo.
-- A régua **ainda não envia nada pela rede**. Faltam a API em endereço público e a chave do dispositivo.
+- A régua **já envia pela rede**: Wi-Fi do Wokwi e `POST /leituras` por HTTP simples, testado em 15/11/2026 contra um serviço público de eco. Para mandar para a API faltam o endereço público e a chave: são duas constantes no programa.
 
-### O pedido que a régua vai enviar
+### O pedido que a régua envia
 
 ```http
 POST /leituras
@@ -166,7 +174,7 @@ Quando a leitura sai:
 - a cada 10 s, enquanto está acima do limite;
 - nunca, enquanto o sensor não responde.
 
-Resposta esperada: `204`, sem corpo. O programa ainda não trata a resposta, porque ainda não envia. A proposta é simples: `204` é sucesso; qualquer outra resposta é falha, e a régua não repete o envio, porque a próxima leitura já sai no intervalo.
+Resposta esperada: `204`, sem corpo. O programa trata qualquer 2xx como sucesso (o serviço de eco responde 200). Outra resposta, ou nenhuma resposta em 5 s, conta como falha: aparece no Monitor Serial e vira `!` no LCD. A régua não repete o envio, porque a próxima leitura já sai no intervalo.
 
 Em um teste durante a montagem, o ESP32 simulado mandou esse pedido a um serviço público de eco (httpbin.org), que devolveu o que recebeu:
 
@@ -181,7 +189,7 @@ X-Chave-Dispositivo: <texto de teste>
 {"reguaId":"regua-exemplo","nivelMetros":0.50}
 ```
 
-A chave desse teste era um texto inventado. O código do teste não está no `sketch.ino` entregue.
+A chave desse teste era um texto inventado. Hoje o `sketch.ino` entregue faz esse mesmo pedido, por HTTP simples, para o serviço de eco, com um valor de demonstração no lugar da chave.
 
 ### Conferência com o Elo Alertas
 
@@ -230,14 +238,14 @@ Do lado de quem recebe a leitura:
 
 1. **Um endereço público.** O ESP32 simulado no Wokwi só alcança endereços da internet. O `localhost` do computador de quem desenvolve não serve. O README da API em C# já descreve a publicação na VM Linux da matéria de Operating Systems, em HTTP na porta 5080 (`ASPNETCORE_URLS=http://0.0.0.0:5080`). A outra opção é abrir um túnel do computador para a internet durante a demonstração. Nenhuma das duas foi testada com a régua.
 2. **Uma chave de demonstração.** O projeto no Wokwi é público, então qualquer chave escrita no programa fica visível para quem abrir o link. O contrato do app pede a chave fora do repositório. Na API em C# a chave vai na variável `Dispositivos__Chave` da VM e vale para todos os dispositivos; no Elo Alertas, no `.env` (`CHAVE_REGUA_EXEMPLO`). Sugestão: uma chave só para a demonstração, trocada depois da entrega.
-3. **HTTP simples.** No teste com o serviço de eco, o envio por HTTPS levou de 6,5 a 7,7 segundos no ESP32 simulado. Com o buzzer em silêncio, a resposta foi `200`. Com o buzzer tocando, o envio falhou todas as vezes. A API em C# atende em HTTP simples e não redireciona para HTTPS, o melhor caso para a régua. HTTP simples ainda não foi testado a partir do ESP32.
+3. **HTTP simples.** No teste de 06/11/2026 com o serviço de eco, o envio por HTTPS levou de 6,5 a 7,7 segundos no ESP32 simulado e falhou todas as vezes em que o buzzer tocava. Em 15/11/2026, por HTTP simples, foram 12 envios seguidos com resposta 200, entre 0,9 s e 1,2 s cada, inclusive com o buzzer tocando, e o intervalo das leituras não se alterou. A API em C# atende em HTTP simples e não redireciona para HTTPS, que é o que a régua precisa.
 
-Do lado da régua, depois que o endereço e a chave existirem:
+Do lado da régua, o envio já está pronto e testado contra o serviço de eco. Quando o endereço e a chave existirem:
 
-1. Ligar o Wi-Fi no `setup()`. No Wokwi, a rede é a `Wokwi-GUEST`, sem senha.
-2. Enviar o texto que hoje vai para o Monitor Serial, na função `publicarLeitura`.
-3. Testar na simulação: `204` no servidor e o mesmo número no `GET /regua`, no app e no painel.
-4. Atualizar o projeto no Wokwi, este repositório e as falas do roteiro do vídeo que dizem que a régua ainda não envia.
+1. No começo do `sketch.ino`, trocar `URL_LEITURAS` por `http://<endereco-da-vm>:5080/leituras` e `CHAVE_DISPOSITIVO` pela mesma chave configurada em `Dispositivos__Chave` na VM.
+2. Salvar o projeto no Wokwi e copiar o mesmo `sketch.ino` para este repositório.
+3. Testar na simulação: `Envio OK: HTTP 204` no Monitor Serial e o mesmo número no `GET /regua`, no app e no painel.
+4. Atualizar o roteiro do vídeo, se o envio para a API ficar pronto antes da gravação.
 
 As tarefas dos dois lados estão na [issue 4 do `elo-app`](https://github.com/Elo-Fiap/elo-app/issues/4).
 
@@ -264,7 +272,7 @@ A resposta deve trazer `"nivelMetros":1.42`, `"limiteMetros":1.2` e `"atencaoMet
 
 1. **Quem recebe a leitura.** O app usa um endereço só (`EXPO_PUBLIC_API_URL`) para `/situacao`, `/chamadas`, `/regua` e `/ruas/{id}/plano`, e esse endereço é a API em C#. A API em C# tem também o `POST /leituras`, e é dela que o painel web lê a régua. O Elo Alertas tem as mesmas duas rotas da régua. Se a régua mandar para o Elo Alertas, o app e o painel não veem a leitura, porque os dois serviços não trocam dados. Para a régua tanto faz, desde que quem receba siga o formato acima. Sugestão: mandar para a API em C#, porque é dela que o app e o painel leem.
 2. **Uma régua só.** O app chama `GET /regua` sem dizer qual régua. A API em C# responde com a régua configurada em `ContratoDoApp:ReguaPadrao`, e o Elo Alertas, com a primeira por ordem de id. Com uma régua, funciona.
-3. **Chave em projeto público.** Veja o item 2 de "O que falta para ligar".
+3. **Chave em projeto público.** O programa traz um valor de demonstração em `CHAVE_DISPOSITIVO`, visível para quem abrir o Wokwi. A chave da demonstração com a API vai ficar visível do mesmo jeito; veja o item 2 de "O que falta para ligar".
 4. **Leitura extra quando a situação muda.** Não está no contrato. Se o nível ficar oscilando em volta de 1,00 m ou de 1,20 m, a régua pode publicar até uma leitura por segundo. Se isso atrapalhar o servidor, dá para limitar no programa.
 5. **Régua sem leitura.** Quando o sensor não responde, a régua não envia nada. O servidor e o app continuam com a última leitura e a hora dela. O contrato não tem um jeito de dizer "régua sem leitura".
 6. **Limite em mais de um lugar.** O 1,20 m está no programa da régua, para o buzzer funcionar sem internet, e no cadastro da régua no servidor (Elo Alertas e API em C#), de onde o app e o painel leem. Se mudar em um, precisa mudar nos outros.
@@ -280,8 +288,9 @@ Tudo na simulação do Wokwi. Este repositório não tem teste automático.
 - Intervalos de 30 s e de 10 s, e a leitura na hora em que a situação muda.
 - Sensor sem resposta: o LCD mostra `SEM LEITURA` e nenhuma leitura sai.
 - Em 09/11/2026, o projeto público foi rodado de novo: 0,50 m em situação normal e 1,42 m acima do limite. A primeira imagem deste README é desse teste.
+- Em 15/11/2026, o envio pela rede: Wi-Fi do Wokwi conectado em 1,9 s; 12 envios para o serviço de eco (`http://httpbin.org/post`) por HTTP simples, todos com resposta 200, entre 0,93 s e 1,2 s; seis deles com o buzzer tocando acima do limite; a leitura extra em cada mudança de situação (normal, acima do limite, atenção, normal) e os intervalos de 30 s e 10 s mantidos durante os envios.
 
-O envio pela rede não foi testado com nenhum dos dois serviços.
+O envio pela rede ainda não foi testado contra a API em C# nem contra o Elo Alertas, só contra o serviço de eco. A falha de rede (endereço fora do ar) não foi simulada.
 
 ## Entrega no Teams
 

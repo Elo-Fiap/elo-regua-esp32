@@ -12,17 +12,20 @@
     3. Mostra o nível e a situação no LCD e nos LEDs.
     4. Toca o buzzer sem depender de internet: um bip lento a partir de 1,00 m
        (atenção) e um bip rápido a partir do limite de 1,20 m.
-    5. Monta a leitura no formato que a API do Elo recebe (POST /leituras) e
-       mostra no Monitor Serial.
+    5. Monta a leitura no formato que a API do Elo recebe (POST /leituras),
+       mostra no Monitor Serial e envia pela rede (Wi-Fi), sem parar o aviso local.
 
-  O envio da leitura por Wi-Fi entra quando a API do Elo tiver um endereço
-  público. Quando isso acontecer, é dessa leitura que o app vai tirar o nível
-  que mostra na tela ("1,42 m"); o limite ("1,20 m") fica guardado no servidor.
-  Até lá, a régua funciona sozinha, no local, e o app mostra um exemplo.
+  A API do Elo (elo-api-csharp) recebe essa leitura, e é dela que o app tira o
+  nível que mostra na tela ("1,42 m"). O limite ("1,20 m") e o nível de atenção
+  ("1,00 m") ficam guardados no servidor, com os mesmos valores daqui.
+  Enquanto a API não tem endereço público, o envio vai para um serviço de eco,
+  só para demonstrar. Sem rede, a régua continua funcionando sozinha, no local.
 */
 
 #include <algorithm>  // std::sort, usado para ordenar as leituras do sensor
 #include <LiquidCrystal_I2C.h>
+#include <WiFi.h>        // Wi-Fi do ESP32
+#include <HTTPClient.h>  // pedido HTTP (POST /leituras)
 
 // ---------- Pinos do ESP32 ----------
 const int PINO_TRIG = 5;           // HC-SR04: dispara o pulso de ultrassom
@@ -39,9 +42,9 @@ const int PINO_LED_VERDE = 27;     // normal
 // ---------- Ajustes da régua ----------
 // As medidas ficam em centímetros, em números inteiros, para a comparação com
 // o limite ser exata. Na tela e na leitura elas aparecem em metros.
-// A altura, o limite e o nível de atenção são valores de exemplo. O limite é o
-// mesmo do exemplo do app; o nível de atenção existe só na régua.
-const char* REGUA_ID = "regua-exemplo";  // mesmo id do exemplo do app
+// A altura, o limite e o nível de atenção são valores de exemplo. O limite e o
+// nível de atenção são os mesmos do cadastro da régua no servidor, que o app mostra.
+const char* REGUA_ID = "regua-exemplo";  // mesmo id do cadastro no servidor e do exemplo do app
 const int ALTURA_SENSOR_CM = 300;        // sensor a 3,00 m do fundo do córrego
 const int LIMITE_CM = 120;               // 1,20 m: o mesmo limite que o app mostra
 const int ATENCAO_CM = 100;              // 1,00 m: aviso antes do limite
@@ -51,6 +54,21 @@ const unsigned long INTERVALO_LEITURA_MS = 200;   // uma leitura do sensor a cad
 const int LEITURAS_POR_MEDIDA = 5;                // 5 leituras formam 1 medida (1 por segundo)
 const unsigned long INTERVALO_NORMAL_MS = 30000;  // contrato da API: leitura a cada 30 s
 const unsigned long INTERVALO_ACIMA_MS = 10000;   // contrato da API: a cada 10 s acima do limite
+
+// ---------- Envio pela rede ----------
+// Rede Wi-Fi. No simulador Wokwi existe a rede aberta "Wokwi-GUEST", sem senha.
+const char* WIFI_REDE = "Wokwi-GUEST";
+const char* WIFI_SENHA = "";
+// Para onde vai o POST /leituras. Vazio ("") desliga o envio: a leitura só aparece no Monitor Serial.
+// Enquanto a API do Elo não tem endereço público, aponta para um serviço público de eco, que devolve
+// o que recebeu, só para demonstrar o envio. Com a API na VM: "http://<endereco-da-vm>:5080/leituras".
+const char* URL_LEITURAS = "http://httpbin.org/post";
+// Chave do dispositivo, enviada no header X-Chave-Dispositivo. Este projeto é público, então aqui vai
+// só um valor de demonstração. A chave de verdade fica na configuração do servidor (Dispositivos__Chave)
+// e precisa ser a mesma escrita aqui.
+const char* CHAVE_DISPOSITIVO = "chave-de-demonstracao";
+const unsigned long ESPERA_WIFI_MS = 8000;         // ao ligar, espera o Wi-Fi conectar por até 8 s
+const unsigned long TEMPO_MAXIMO_ENVIO_MS = 5000;  // desiste de um envio depois de 5 s
 
 // ---------- Situações da régua ----------
 enum Situacao { SEM_LEITURA, NORMAL, ATENCAO, ACIMA_DO_LIMITE };
@@ -69,6 +87,13 @@ unsigned long ultimaLeituraMs = 0;
 unsigned long ultimaPublicacaoMs = 0;
 int frequenciaBuzzer = 0;  // 0 = em silêncio
 
+// Uma leitura esperando para ser enviada. O texto já vem pronto, no formato do contrato.
+struct Envio {
+  char corpo[64];
+};
+QueueHandle_t filaDeEnvios = nullptr;  // fila entre o programa principal e a tarefa de envio
+volatile char marcadorEnvio = ' ';     // canto do LCD: '*' último envio OK, '!' falhou, ' ' nenhum ainda
+
 // Transforma centímetros em texto de metros com 2 casas: 142 vira "1,42".
 // O separador é vírgula no LCD (como no app) e ponto no JSON (regra do formato).
 String emMetros(int centimetros, char separador) {
@@ -85,7 +110,7 @@ const char* nomeSituacao(Situacao s) {
   return "SEM LEITURA";
 }
 
-// Mesma regra do app: está acima do limite quando nível >= limite.
+// Mesma regra do app e do servidor: está acima do limite quando nível >= limite.
 Situacao classificar(int nivel) {
   if (nivel >= LIMITE_CM) return ACIMA_DO_LIMITE;
   if (nivel >= ATENCAO_CM) return ATENCAO;
@@ -118,11 +143,11 @@ void escreverLinha(int linha, String texto) {
 }
 
 void atualizarLcd() {
-  if (situacao == SEM_LEITURA) {
-    escreverLinha(0, "Nivel: --");
-  } else {
-    escreverLinha(0, "Nivel: " + emMetros(nivelCm, ',') + " m");
-  }
+  String linha1 = "Nivel: --";
+  if (situacao != SEM_LEITURA) linha1 = "Nivel: " + emMetros(nivelCm, ',') + " m";
+  while (linha1.length() < 15) linha1 += ' ';
+  linha1 += (char)marcadorEnvio;  // canto direito: como foi o último envio pela rede
+  escreverLinha(0, linha1);
   escreverLinha(1, nomeSituacao(situacao));
 }
 
@@ -149,9 +174,71 @@ void atualizarBuzzer(unsigned long agora) {
   }
 }
 
-// Mostra a leitura no Monitor Serial, no formato do contrato da API do Elo
-// (docs/contrato-api.md do app). É este texto que a régua vai enviar no
-// POST /leituras quando a API tiver um endereço público.
+// Faz o POST /leituras. Sucesso é qualquer resposta 2xx: a API do Elo responde 204,
+// e o serviço de eco, 200. Roda na tarefa de envio, nunca no loop().
+void enviarLeitura(const char* corpo) {
+  unsigned long inicio = millis();
+  if (WiFi.status() != WL_CONNECTED) {
+    marcadorEnvio = '!';
+    Serial.printf("[%4lu s] Sem Wi-Fi: leitura nao enviada.\n", inicio / 1000);
+    return;
+  }
+
+  WiFiClient conexao;
+  HTTPClient http;
+  http.setConnectTimeout(TEMPO_MAXIMO_ENVIO_MS);
+  http.setTimeout(TEMPO_MAXIMO_ENVIO_MS);
+  http.begin(conexao, URL_LEITURAS);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("X-Chave-Dispositivo", CHAVE_DISPOSITIVO);
+  int codigo = http.POST(corpo);
+  unsigned long duracao = millis() - inicio;
+
+  if (codigo >= 200 && codigo < 300) {
+    marcadorEnvio = '*';
+    Serial.printf("[%4lu s] Envio OK: HTTP %d em %lu ms.\n", millis() / 1000, codigo, duracao);
+  } else if (codigo > 0) {
+    marcadorEnvio = '!';  // o servidor respondeu, mas recusou (por exemplo 401: chave errada)
+    Serial.printf("[%4lu s] Envio recusado: HTTP %d em %lu ms.\n", millis() / 1000, codigo, duracao);
+  } else {
+    marcadorEnvio = '!';  // não houve resposta (sem rede, endereço errado, tempo esgotado)
+    Serial.printf("[%4lu s] Falha no envio: %s em %lu ms.\n", millis() / 1000, http.errorToString(codigo).c_str(), duracao);
+  }
+  http.end();
+}
+
+// Roda no outro núcleo do ESP32 (core 0) e fica esperando leituras na fila. Assim o pedido
+// HTTP, que pode levar alguns segundos, não para o sensor, os LEDs nem o buzzer do loop().
+void tarefaDeEnvio(void*) {
+  Envio envio;
+  for (;;) {
+    if (xQueueReceive(filaDeEnvios, &envio, portMAX_DELAY) == pdTRUE) enviarLeitura(envio.corpo);
+  }
+}
+
+// Liga o Wi-Fi e espera a conexão por até ESPERA_WIFI_MS. Se não conectar, a régua segue
+// funcionando no local; o ESP32 continua tentando a rede sozinho, e o envio volta quando ela voltar.
+void ligarEnvio() {
+  escreverLinha(1, "Ligando Wi-Fi...");
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  WiFi.begin(WIFI_REDE, WIFI_SENHA, 6);  // canal 6: no Wokwi, conecta mais rápido
+
+  unsigned long inicio = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - inicio < ESPERA_WIFI_MS) delay(100);
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("Wi-Fi conectado em " + String(millis() - inicio) + " ms. Envio das leituras para " + String(URL_LEITURAS));
+  } else {
+    Serial.println("Sem Wi-Fi por enquanto. A regua funciona no local e envia quando a rede conectar.");
+  }
+
+  filaDeEnvios = xQueueCreate(4, sizeof(Envio));
+  xTaskCreatePinnedToCore(tarefaDeEnvio, "envio", 10240, nullptr, 1, nullptr, 0);
+}
+
+// Monta a leitura no formato do contrato da API do Elo (docs/contrato-api.md do app),
+// mostra no Monitor Serial e põe na fila de envio. Quem envia é a tarefa de envio.
 void publicarLeitura(unsigned long agora) {
   if (situacao == SEM_LEITURA) {
     Serial.printf("[%4lu s] Sem leitura do sensor: nada para enviar.\n", agora / 1000);
@@ -161,6 +248,14 @@ void publicarLeitura(unsigned long agora) {
   String leitura = "{\"reguaId\":\"" + String(REGUA_ID) + "\",\"nivelMetros\":" + emMetros(nivelCm, '.') + "}";
 
   Serial.printf("[%4lu s] Situacao: %s | Leitura para POST /leituras: %s\n", agora / 1000, nomeSituacao(situacao), leitura.c_str());
+
+  if (filaDeEnvios == nullptr) return;  // envio pela rede desligado
+
+  Envio envio;
+  strlcpy(envio.corpo, leitura.c_str(), sizeof(envio.corpo));
+  if (xQueueSend(filaDeEnvios, &envio, 0) != pdTRUE) {
+    Serial.printf("[%4lu s] Fila de envio cheia: esta leitura nao vai.\n", agora / 1000);
+  }
 }
 
 // Junta as leituras do último segundo em uma medida: calcula o nível, decide
@@ -204,6 +299,12 @@ void setup() {
   Serial.println("Elo - regua de nivel do corrego");
   Serial.println("Regua " + String(REGUA_ID) + " | sensor a " + emMetros(ALTURA_SENSOR_CM, ',') + " m | limite " + emMetros(LIMITE_CM, ',') + " m | atencao a partir de " + emMetros(ATENCAO_CM, ',') + " m");
   Serial.println("A leitura aparece aqui no formato que a API do Elo recebe (POST /leituras).");
+
+  if (strlen(URL_LEITURAS) > 0) {
+    ligarEnvio();
+  } else {
+    Serial.println("Envio pela rede desligado (URL_LEITURAS vazia): a leitura so aparece aqui.");
+  }
 }
 
 void loop() {
