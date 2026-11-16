@@ -127,7 +127,7 @@ O `sketch.ino` e o `diagram.json` deste repositório são iguais aos do projeto 
 6. **Leitura para a API.** O programa monta o texto do `POST /leituras` e mostra no Monitor Serial: na hora em que a situação muda e, depois, a cada 30 s (10 s acima do limite).
 7. **Envio pela rede.** A leitura entra em uma fila, e uma tarefa separada, no outro núcleo do ESP32, faz o `POST` com o header `X-Chave-Dispositivo`. Assim um envio demorado não para o sensor, os LEDs nem o buzzer. Qualquer resposta 2xx é sucesso (`*` no LCD); recusa, falta de rede ou 5 s sem resposta é falha (`!` no LCD), com o motivo no Serial. A régua não repete o envio: a próxima leitura já sai no intervalo. Com `URL_LEITURAS` vazia, o envio fica desligado.
 
-Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LIMITE_CM`, `ATENCAO_CM`, os intervalos e, para a rede, `WIFI_REDE`, `URL_LEITURAS` e `CHAVE_DISPOSITIVO`. A altura, o limite e o nível de atenção são valores de exemplo.
+Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LIMITE_CM`, `ATENCAO_CM`, os intervalos e, para a rede, `WIFI_REDE`, `URL_LEITURAS` e `CHAVE_DISPOSITIVO`. A altura, o limite e o nível de atenção são valores de exemplo. Dois cuidados ao mudar: o `REGUA_ID` cabe até 30 caracteres no texto da leitura; e, fora do simulador, além de trocar `WIFI_REDE` e `WIFI_SENHA` pela rede do local, tire o canal `6` do `WiFi.begin`, que só serve para conectar mais rápido no Wokwi.
 
 ## Arquivos
 

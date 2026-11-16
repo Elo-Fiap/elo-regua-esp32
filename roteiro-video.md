@@ -65,7 +65,7 @@ Tela: o Wokwi com a simulação rodando e o Monitor Serial visível.
 
 A entrega é feita por um integrante só, pelo Teams, com três itens:
 
-- [ ] Link público do projeto no Wokwi: https://wokwi.com/projects/479922926737544193 (aberto sem login em 08/11/2026; conferir de novo em janela anônima antes de enviar).
+- [ ] Link público do projeto no Wokwi: https://wokwi.com/projects/479922926737544193 (aberto sem login em 15/11/2026; conferir de novo em janela anônima antes de enviar).
 - [ ] Link do vídeo, com até 4 minutos, aberto para quem tem o link.
 - [ ] Arquivo `integrantes.txt` com nome completo e RM de todos.
 
