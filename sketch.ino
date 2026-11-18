@@ -18,8 +18,9 @@
   A API do Elo (elo-api-csharp) recebe essa leitura, e é dela que o app tira o
   nível que mostra na tela ("1,42 m"). O limite ("1,20 m") e o nível de atenção
   ("1,00 m") ficam guardados no servidor, com os mesmos valores daqui.
-  Enquanto a API não tem endereço público, o envio vai para um serviço de eco,
-  só para demonstrar. Sem rede, a régua continua funcionando sozinha, no local.
+  A API está publicada na nuvem (Azure, plano gratuito): depois de um tempo parada,
+  a primeira resposta pode demorar até ela acordar. Sem rede, a régua continua
+  funcionando sozinha, no local.
 */
 
 #include <algorithm>  // std::sort, usado para ordenar as leituras do sensor
@@ -59,16 +60,16 @@ const unsigned long INTERVALO_ACIMA_MS = 10000;   // contrato da API: a cada 10 
 // Rede Wi-Fi. No simulador Wokwi existe a rede aberta "Wokwi-GUEST", sem senha.
 const char* WIFI_REDE = "Wokwi-GUEST";
 const char* WIFI_SENHA = "";
-// Para onde vai o POST /leituras. Vazio ("") desliga o envio: a leitura só aparece no Monitor Serial.
-// Enquanto a API do Elo não tem endereço público, aponta para um serviço público de eco, que devolve
-// o que recebeu, só para demonstrar o envio. Com a API na VM: "http://<endereco-da-vm>:5080/leituras".
-const char* URL_LEITURAS = "http://httpbin.org/post";
-// Chave do dispositivo, enviada no header X-Chave-Dispositivo. Este projeto é público, então aqui vai
-// só um valor de demonstração. A chave de verdade fica na configuração do servidor (Dispositivos__Chave)
-// e precisa ser a mesma escrita aqui.
-const char* CHAVE_DISPOSITIVO = "chave-de-demonstracao";
+// Para onde vai o POST /leituras: a API do Elo publicada (HTTP simples, como o ESP32 precisa).
+// Vazio ("") desliga o envio: a leitura só aparece no Monitor Serial. Para testar sem a API,
+// um serviço público de eco serve: "http://httpbin.org/post" (responde 200 com o que recebeu).
+const char* URL_LEITURAS = "http://elo-api-fiap.azurewebsites.net/leituras";
+// Chave do dispositivo, enviada no header X-Chave-Dispositivo. Precisa ser igual à Dispositivos__Chave
+// configurada na API. Este projeto é público, então esta é uma chave só de demonstração, combinada com
+// o grupo, que vai ser trocada depois da entrega.
+const char* CHAVE_DISPOSITIVO = "elo-demo-d651f252b286";
 const unsigned long ESPERA_WIFI_MS = 8000;         // ao ligar, espera o Wi-Fi conectar por até 8 s
-const unsigned long TEMPO_MAXIMO_ENVIO_MS = 5000;  // desiste de um envio depois de 5 s
+const unsigned long TEMPO_MAXIMO_ENVIO_MS = 8000;  // desiste de um envio depois de 8 s (a API no plano gratuito pode demorar a acordar)
 
 // ---------- Situações da régua ----------
 enum Situacao { SEM_LEITURA, NORMAL, ATENCAO, ACIMA_DO_LIMITE };

@@ -22,6 +22,7 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 | 14/11/2026 | João | Claude Code | Atualizar os projetos do grupo para receber os dados do painel web de administração (posição da régua no mapa, nível de atenção) | Só o `README.md`: o diagrama, onde a posição da régua fica cadastrada e os pontos em aberto 1, 6, 7 e 8. O `sketch.ino` não mudou | A conferir |
 | 15/11/2026 | Bruno | Claude Code | Conferir se o app já lê a régua pela API e revisar a régua contra o app, a documentação e os requisitos da GS | Conferência com a API em C# no `README.md`, roteiro do vídeo atualizado (o app lê da API em C#; aviso na aba Agora; "em atenção") e issue 4 do `elo-app` | A conferir |
 | 15/11/2026 | Bruno | Claude Code | Levantar as pendências da régua frente ao app e aos requisitos e aplicar o que faltava | Envio por Wi-Fi no `sketch.ino` (fila e tarefa no outro núcleo, HTTP simples, 2xx = sucesso, marcador no LCD), testado contra um serviço de eco; `README.md`, roteiro e este registro | A conferir |
+| 18/11/2026 | Bruno | Claude Code | Apontar a régua para a API publicada pelo João (http://elo-api-fiap.azurewebsites.net), com a chave de demonstração, testar o envio de verdade e salvar | `sketch.ino` (endereço, chave, espera por envio de 5 s para 8 s e comentários), projeto no Wokwi, `README.md`, roteiro e este registro. Teste: 11 envios com 204 e o `GET /regua` devolvendo o nível da régua | A conferir |
 
 ## O que a IA decidiu sozinha e a equipe precisa conferir
 
@@ -31,8 +32,8 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 - A mediana de cinco leituras por segundo.
 - Os pinos do ESP32 e os textos do LCD.
 - O jeito do envio pela rede: uma fila e uma tarefa no outro núcleo do ESP32, para o pedido HTTP não parar o aviso local. É mais código do que um envio direto no `loop()`, mas o envio direto travava a régua por segundos no teste de 06/11/2026.
-- O destino padrão do envio enquanto a API não tem endereço público: o serviço de eco httpbin.org, por HTTP simples, com um valor de demonstração no lugar da chave, visível no projeto público.
-- Os tempos de rede (até 8 s esperando o Wi-Fi ao ligar e até 5 s por envio) e o marcador `*`/`!` no canto do LCD.
+- Enquanto a API não tinha endereço público (até 17/11/2026), o destino do envio era um serviço público de eco (httpbin.org), por HTTP simples, com um valor de demonstração no lugar da chave. Desde 18/11/2026 o destino é a API publicada, com a chave de demonstração combinada com o grupo; o eco ficou só como opção comentada no programa.
+- Os tempos de rede (até 8 s esperando o Wi-Fi ao ligar e até 8 s por envio, porque a API no plano gratuito demora a acordar) e o marcador `*`/`!` no canto do LCD.
 
 A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do Elo Alertas e com o exemplo do app.
 
@@ -49,7 +50,9 @@ A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do
 - Intervalos de 30 s e de 10 s, e a leitura na hora em que a situação muda.
 - Sensor sem resposta: o LCD mostra "SEM LEITURA" e nada é publicado.
 - Em 15/11/2026, o envio pela rede: Wi-Fi conectado em 1,9 s e 12 envios ao serviço de eco com resposta 200, de 0,93 s a 1,2 s, seis deles com o buzzer tocando, sem atrasar as leituras.
+- Em 18/11/2026, o envio para a API publicada: Wi-Fi conectado em 1,8 s e 11 envios com resposta 204, de 1,19 s a 1,72 s, seis deles com o buzzer tocando; duas leituras com um segundo de diferença, as duas enviadas; o `GET /regua` devolveu o nível que a régua mandou (0,50 m e 1,42 m) com a hora da medida.
 
 ## O que não foi feito
 
-- O envio para a API de verdade. O programa envia, mas para um serviço de eco: a API em C# e o Elo Alertas rodam no computador de quem desenvolve, e o ESP32 do Wokwi só alcança endereço público. Com a API na VM Linux do grupo, é trocar `URL_LEITURAS` e `CHAVE_DISPOSITIVO` e testar de novo. A falha de rede (endereço fora do ar) não foi simulada. Em 06/11/2026, a conexão segura (HTTPS) levou cerca de 7 segundos no ESP32 simulado e falhou enquanto o buzzer tocava; por isso o envio é em HTTP simples.
+- A falha de rede (endereço fora do ar) e a API acordando do plano gratuito no meio da simulação não foram simuladas. O envio para o Elo Alertas não foi testado: a régua manda para a API em C#, de onde o app e o painel leem. O app e o painel mostrando a leitura enviada não foram conferidos aqui.
+- A conexão segura (HTTPS). Em 06/11/2026 ela levou cerca de 7 segundos no ESP32 simulado e falhou enquanto o buzzer tocava; por isso o envio é em HTTP simples, e a API publicada aceita HTTP.
