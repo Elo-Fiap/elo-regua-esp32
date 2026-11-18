@@ -20,7 +20,7 @@ Parte de Physical Computing: IoT & IoB do projeto Elo (Global Solution 2026.2, F
 | Aviso no local (LEDs, LCD e buzzer) | Funciona sem internet |
 | Leitura no formato do `POST /leituras` | Aparece no Monitor Serial e é enviada por Wi-Fi |
 | Quem recebe a leitura | A API em C# e o Elo Alertas têm a rota `POST /leituras`. O app e o painel leem a régua da API em C# |
-| Envio da leitura pela rede | **Feito e testado** em 15/11/2026 contra um serviço público de eco, por HTTP simples: 12 envios, todos com resposta 200, entre 0,9 s e 1,2 s, inclusive com o buzzer tocando. Falta apontar para a API em C# quando ela tiver endereço público (VM Linux) e chave. Veja [Para quem cuida da API](#para-quem-cuida-da-api) |
+| Envio da leitura pela rede | **Feito e testado** em 15/11/2026 contra um serviço público de eco, por HTTP simples: 12 envios, todos com resposta 200, entre 0,9 s e 1,2 s, inclusive com o buzzer tocando. A API em C# está publicada desde 18/11/2026 em `http://elo-api-fiap.azurewebsites.net`, com chave de demonstração. Falta trocar o endereço e a chave no `sketch.ino` e testar. Veja [Para quem cuida da API](#para-quem-cuida-da-api) |
 | App | Já mostra a régua: aviso na aba Agora acima do limite, "em atenção" a partir de 1,00 m, atualização a cada 30 s (10 s acima do limite) |
 | Vídeo de até 4 minutos | A gravar. Roteiro em [`roteiro-video.md`](./roteiro-video.md) |
 | Entrega no Teams | Até 19/11/2026, 23h55 |
@@ -36,7 +36,7 @@ flowchart LR
     PAINEL["Painel web (elo-admin)"] -.->|"GET /api/admin/instantaneo"| BAIRRO
 ```
 
-A linha cheia já funciona. As tracejadas dependem de a API estar em um endereço que a régua alcance: o programa já envia a leitura por Wi-Fi, hoje para um serviço público de eco, porque a API ainda não tem endereço público.
+A linha cheia já funciona. As tracejadas dependem de a API estar em um endereço que a régua alcance: o programa já envia a leitura por Wi-Fi, hoje para um serviço público de eco. A API em C# já tem endereço público (`http://elo-api-fiap.azurewebsites.net`); falta trocar o endereço e a chave no programa.
 
 Os dois serviços recebem `POST /leituras` no mesmo formato e com o mesmo header `X-Chave-Dispositivo`. Quem recebe de verdade na demonstração ainda é decisão do grupo (veja os [pontos em aberto](#pontos-em-aberto-para-o-grupo)).
 
@@ -148,7 +148,7 @@ Os ajustes ficam no começo do `sketch.ino`: `REGUA_ID`, `ALTURA_SENSOR_CM`, `LI
 - A régua monta a leitura no formato do contrato do app (`docs/contrato-api.md` do `elo-app`, seção "O que o ESP32 envia").
 - Dois serviços do grupo recebem essa leitura (`POST /leituras`) e respondem a consulta (`GET /regua`), no mesmo formato: a API em C# (`elo-api-csharp`, desde 10/11/2026) e o Elo Alertas (`elo-alertas`, desde 06/11/2026). Eles não trocam dados entre si.
 - O app e o painel web leem a régua da API em C#. Por isso a sugestão é a régua mandar para ela. A decisão é do grupo.
-- A régua **já envia pela rede**: Wi-Fi do Wokwi e `POST /leituras` por HTTP simples, testado em 15/11/2026 contra um serviço público de eco. Para mandar para a API faltam o endereço público e a chave: são duas constantes no programa.
+- A régua **já envia pela rede**: Wi-Fi do Wokwi e `POST /leituras` por HTTP simples, testado em 15/11/2026 contra um serviço público de eco. Para mandar para a API, falta trocar duas constantes no programa: o endereço (`http://elo-api-fiap.azurewebsites.net/leituras`) e a chave de demonstração.
 
 ### O pedido que a régua envia
 
@@ -218,7 +218,7 @@ Essa conferência foi feita lendo o código do Elo Alertas no commit `36879b5`. 
 | --- | --- | --- | --- |
 | Rota | `POST /leituras` | `POST /leituras`, sem o prefixo `/api` | Sim |
 | Header da chave | `X-Chave-Dispositivo` | `X-Chave-Dispositivo`, conferido antes de ler o corpo; sem chave ou com chave errada, `401` | Sim |
-| Chave | fica fora do projeto público | uma chave para todos os dispositivos, na variável `Dispositivos__Chave`. Sem chave configurada, só o modo de desenvolvimento aceita a leitura | Sim. Na VM a chave precisa estar configurada |
+| Chave | fica fora do projeto público | uma chave para todos os dispositivos, na variável `Dispositivos__Chave`. Sem chave configurada, só o modo de desenvolvimento aceita a leitura | Sim. No Azure a chave está configurada |
 | Id da régua | `regua-exemplo` | `regua-exemplo`, criada pela semente; até 40 caracteres, sem diferenciar maiúsculas | Sim |
 | `nivelMetros` | número com 2 casas, de 0.00 a 2.98 | número de 0 a 5 m, guardado em centímetros | Sim |
 | Campos opcionais | não envia | `medidaEm` opcional (vale a hora do servidor); `bateriaPercentual` aceito e não guardado | Sim |
@@ -226,7 +226,7 @@ Essa conferência foi feita lendo o código do Elo Alertas no commit `36879b5`. 
 | Regra do limite | nível maior ou igual ao limite | `nivelCm >= limiteCm` | Sim |
 | Resposta de sucesso | espera `204` | `204`, sem corpo | Sim |
 | Qual régua o app vê | `regua-exemplo` | `ContratoDoApp:ReguaPadrao`, que é `regua-exemplo` | Sim |
-| HTTP simples | recomendado para o ESP32 | porta 5080 em HTTP, sem redirecionar para HTTPS | Sim |
+| HTTP simples | recomendado para o ESP32 | HTTP simples, sem redirecionar para HTTPS: no Azure o "HTTPS Only" fica desligado; localmente, porta 5080 | Sim. Testado de fora em 18/11/2026 |
 
 Essa conferência foi feita lendo o código da API em C# no commit `0020934` (15/11/2026). A evidência `docs/evidencias/fluxo-completo.md` dela mostra o mesmo corpo da régua recebendo `401` sem a chave e `204` com a chave.
 
@@ -236,15 +236,15 @@ Essa conferência foi feita lendo o código da API em C# no commit `0020934` (15
 
 Do lado de quem recebe a leitura:
 
-1. **Um endereço público.** O ESP32 simulado no Wokwi só alcança endereços da internet. O `localhost` do computador de quem desenvolve não serve. O README da API em C# já descreve a publicação na VM Linux da matéria de Operating Systems, em HTTP na porta 5080 (`ASPNETCORE_URLS=http://0.0.0.0:5080`). A outra opção é abrir um túnel do computador para a internet durante a demonstração. Nenhuma das duas foi testada com a régua.
-2. **Uma chave de demonstração.** O projeto no Wokwi é público, então qualquer chave escrita no programa fica visível para quem abrir o link. O contrato do app pede a chave fora do repositório. Na API em C# a chave vai na variável `Dispositivos__Chave` da VM e vale para todos os dispositivos; no Elo Alertas, no `.env` (`CHAVE_REGUA_EXEMPLO`). Sugestão: uma chave só para a demonstração, trocada depois da entrega.
-3. **HTTP simples.** No teste de 06/11/2026 com o serviço de eco, o envio por HTTPS levou de 6,5 a 7,7 segundos no ESP32 simulado e falhou todas as vezes em que o buzzer tocava. Em 15/11/2026, por HTTP simples, foram 12 envios seguidos com resposta 200, entre 0,9 s e 1,2 s cada, inclusive com o buzzer tocando, e o intervalo das leituras não se alterou. A API em C# atende em HTTP simples e não redireciona para HTTPS, que é o que a régua precisa.
+1. **Um endereço público. Feito em 18/11/2026.** A API em C# está no Azure App Service, em `http://elo-api-fiap.azurewebsites.net` (plano gratuito; dorme quando fica parada, e a primeira chamada depois disso leva alguns segundos). Conferido de fora: `GET /health` responde 200; `POST /leituras` com o corpo da régua responde 204 com a chave e 401 sem ela; `GET /regua` devolve o nível enviado. A página inicial do endereço mostra a última leitura da régua.
+2. **Uma chave de demonstração. Feito em 18/11/2026.** A chave está na configuração `Dispositivos__Chave` do Azure e fica fora deste repositório: peça ao João. O projeto no Wokwi é público, então a chave escrita no programa fica visível para quem abrir o link; por isso ela vale só para a demonstração e é trocada depois da entrega. No Elo Alertas, a chave vai no `.env` (`CHAVE_REGUA_EXEMPLO`).
+3. **HTTP simples.** No teste de 06/11/2026 com o serviço de eco, o envio por HTTPS levou de 6,5 a 7,7 segundos no ESP32 simulado e falhou todas as vezes em que o buzzer tocava. Em 15/11/2026, por HTTP simples, foram 12 envios seguidos com resposta 200, entre 0,9 s e 1,2 s cada, inclusive com o buzzer tocando, e o intervalo das leituras não se alterou. A API em C# no Azure atende em HTTP simples e não redireciona para HTTPS, que é o que a régua precisa. Render, Railway, Vercel e similares redirecionam tudo para HTTPS e por isso não foram usados.
 
-Do lado da régua, o envio já está pronto e testado contra o serviço de eco. Quando o endereço e a chave existirem:
+Do lado da régua, o envio já está pronto e testado contra o serviço de eco. O endereço e a chave já existem; falta:
 
-1. No começo do `sketch.ino`, trocar `URL_LEITURAS` por `http://<endereco-da-vm>:5080/leituras` e `CHAVE_DISPOSITIVO` pela mesma chave configurada em `Dispositivos__Chave` na VM.
+1. No começo do `sketch.ino`, trocar `URL_LEITURAS` por `http://elo-api-fiap.azurewebsites.net/leituras` (sem porta) e `CHAVE_DISPOSITIVO` pela chave de demonstração.
 2. Salvar o projeto no Wokwi e copiar o mesmo `sketch.ino` para este repositório.
-3. Testar na simulação: `Envio OK: HTTP 204` no Monitor Serial e o mesmo número no `GET /regua`, no app e no painel.
+3. Testar na simulação: `Envio OK: HTTP 204` no Monitor Serial e o mesmo número no `GET /regua`, na página `http://elo-api-fiap.azurewebsites.net`, no app e no painel.
 4. Atualizar o roteiro do vídeo, se o envio para a API ficar pronto antes da gravação.
 
 As tarefas dos dois lados estão na [issue 4 do `elo-app`](https://github.com/Elo-Fiap/elo-app/issues/4).

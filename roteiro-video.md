@@ -36,7 +36,7 @@ Tela: o diagrama no Wokwi, ainda parado. Depois o app, na linha da régua.
 - O limite da régua é 1,20 m, o mesmo que o app mostra. Na aba Plano, a rota de saída aparece sob o título "Quando a régua passar de 1,20 m": a régua é o sinal para seguir o plano da rua.
 - No local, três LEDs e o LCD mostram a situação, e o buzzer avisa quem está perto. Isso funciona sem internet.
 - A leitura sai no formato do contrato da API do Elo (`POST /leituras`), com o id da régua e o nível em metros. A API em C# do grupo já recebe essa leitura, e é dela que o app e o painel web leem a régua (`GET /regua`). O Elo Alertas, da matéria de SOA, tem a mesma rota.
-- Dizer com clareza o estado atual: a régua já envia cada leitura por Wi-Fi, no formato da API. Como a API ainda não tem endereço público, o envio vai para um serviço público de eco, que responde 200; com a API na VM Linux do grupo, muda só o endereço e a chave no programa. Enquanto isso, o app mostra dado de exemplo. Se até a gravação a API estiver no ar, mostrar o número da régua chegando ao app.
+- Dizer com clareza o estado atual: a régua já envia cada leitura por Wi-Fi, no formato da API. A API em C# já está publicada (`http://elo-api-fiap.azurewebsites.net`); se o programa ainda apontar para o serviço público de eco, que responde 200, muda só o endereço e a chave. Enquanto isso, o app mostra dado de exemplo. Se até a gravação a API estiver no ar, mostrar o número da régua chegando ao app.
 
 ## Parte 3. Demonstração no Wokwi (1:40 a 3:30)
 
@@ -59,7 +59,7 @@ Tela: o Wokwi com a simulação rodando e o Monitor Serial visível.
 
 - **"O Elo não cria alertas próprios. E o buzzer?"** O app continua sem criar alerta: ele só mostra a leitura. Quem avisa é o aparelho no local, a partir de uma medida, como a proposta descreve ("a água avisa sozinha").
 - **"O que é o nível de atenção?"** É o aviso a partir de 1,00 m, antes do limite. A régua acende o LED amarelo, e o app, com a API ligada, mostra "em atenção" no mesmo ponto.
-- **"A leitura já chega ao app?"** A régua já envia a leitura por Wi-Fi, no formato que a API recebe. Hoje o destino é um serviço de eco, porque a API ainda não tem endereço público; quando tiver, muda só o endereço e a chave no programa, e o app passa a mostrar o número da régua.
+- **"A leitura já chega ao app?"** A régua já envia a leitura por Wi-Fi, no formato que a API recebe. A API já tem endereço público; trocando o endereço e a chave no programa, o app passa a mostrar o número da régua.
 
 ## Conferência da entrega
 
