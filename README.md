@@ -2,6 +2,22 @@
 
 Parte de Physical Computing: IoT & IoB do projeto Elo (Global Solution 2026.2, FIAP). O Elo é um app que faz a chamada das ruas de um bairro durante chuva forte. Esta régua é a parte física do projeto: um ESP32 com sensor ultrassônico, instalado acima do córrego, que mede o nível da água e avisa no local quando ele chega ao limite.
 
+## Ficha da CitizenTech
+
+A mesma ficha do [README do app](https://github.com/Elo-Fiap/elo-app), com o endereço deste repositório.
+
+| Campo | Resposta |
+| --- | --- |
+| Nome da CitizenTech | Elo |
+| Cidade e bairro | São Paulo, Jardim Pantanal (bairro do piloto) |
+| Cidadão beneficiado | Moradores de ruas que alagam, por meio da liderança da rua ou do voluntário do núcleo comunitário de Defesa Civil |
+| Problema, em uma frase | Durante a chuva forte, quem cuida do bairro não consegue saber quais ruas estão bem, quais precisam de ajuda e quais ficaram em silêncio. |
+| Como funciona | O aviso oficial chega ao coordenador, a liderança de cada rua responde em um toque, mesmo com internet ruim, e o painel destaca as ruas sem resposta. Um sensor mede a água no ponto crítico. |
+| O que cada parte faz | App: aviso, chamada, plano e registro. API: guarda as chamadas e ordena as ruas em silêncio. **ESP32 (este repositório): mede a água no ponto crítico, avisa no local com LEDs, display e buzzer, e envia cada leitura para a API.** ML: indica o nível de atenção por subprefeitura. Segurança: evita vazamento do que é digitado. Linux: hospeda a API. Testes: requisitos e casos de teste. |
+| Link do repositório | https://github.com/Elo-Fiap/elo-regua-esp32 (régua) e https://github.com/Elo-Fiap/elo-app (app) |
+| Indicador de impacto | Percentual de ruas com situação conhecida em 15 minutos, comparando o simulado sem e com o app |
+| ODS conectados | ODS 11 (meta 11.5) e ODS 13 (meta 13.1) |
+
 **Este é o repositório de IoT do grupo.** Entre os repositórios do grupo, o programa do ESP32 e o circuito ficam só aqui. O `elo-alertas` é outra entrega, a de SOA: um serviço que aceita o mesmo pedido desta régua. Ele não tem código de ESP32.
 
 - **Simulação no Wokwi (pública):** https://wokwi.com/projects/479922926737544193
@@ -10,13 +26,13 @@ Parte de Physical Computing: IoT & IoB do projeto Elo (Global Solution 2026.2, F
 - **Elo Alertas (entrega de SOA), que aceita o mesmo pedido da régua:** [Elo-Fiap/elo-alertas](https://github.com/Elo-Fiap/elo-alertas)
 - **Painel web de administração, que mostra a régua no mapa:** [Elo-Fiap/elo-admin](https://github.com/Elo-Fiap/elo-admin)
 
-![Simulação no Wokwi com o nível em 1,42 m: LED vermelho aceso, LCD com "ACIMA DO LIMITE" e as leituras no Monitor Serial](docs/simulacao.jpg)
+![Simulação no Wokwi com o nível em 1,42 m: LED vermelho aceso, LCD com "ACIMA DO LIMITE" e o asterisco do envio aceito, e no Monitor Serial as leituras com "Envio OK: HTTP 204"](docs/simulacao.jpg)
 
-## Situação em 18/11/2026
+## Situação em 19/11/2026
 
 | Item | Situação |
 | --- | --- |
-| Circuito e programa no Wokwi | Prontos e testados na simulação. Iguais aos deste repositório (conferido em 18/11/2026) |
+| Circuito e programa no Wokwi | Prontos e testados na simulação. Iguais aos deste repositório (`sketch.ino` e `diagram.json` conferidos de novo em 19/11/2026, com o projeto aberto sem login) |
 | Aviso no local (LEDs, LCD e buzzer) | Funciona sem internet |
 | Leitura no formato do `POST /leituras` | Aparece no Monitor Serial e é enviada por Wi-Fi |
 | Quem recebe a leitura | A API em C#, publicada em http://elo-api-fiap.azurewebsites.net. É dela que o app e o painel leem a régua. O Elo Alertas tem a mesma rota, mas a régua não manda para ele |
