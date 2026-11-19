@@ -61,12 +61,35 @@ Tela: o Wokwi com a simulação rodando e o Monitor Serial visível.
 - **"O que é o nível de atenção?"** É o aviso a partir de 1,00 m, antes do limite. A régua acende o LED amarelo, e o app mostra "em atenção" no mesmo ponto.
 - **"A leitura já chega ao app?"** Chega à API, publicada na nuvem: a régua envia por Wi-Fi, e a API devolve o número no `GET /regua`. O app e o painel mostram esse número quando apontam para esse endereço (`EXPO_PUBLIC_API_URL`, no app). Testado em 18/11/2026: 11 envios, todos com resposta 204.
 
+## O vídeo gravado (19/11/2026)
+
+O vídeo entregue tem 2 min 33 s e segue o roteiro acima em 13 falas. Ele foi gravado por um navegador automático, e a narração é a voz do Bruno clonada por IA, com a autorização dele (registro em [`prompts.md`](./prompts.md)). Duas diferenças em relação ao plano acima:
+
+- O app aparece em prints, nas cartelas do começo, e não rodando ao lado da simulação.
+- A prova de que a leitura chega ao sistema do grupo é a página pública da API, que aparece três vezes: antes da simulação, com 1,42 m e, no fim, com 0,50 m, sempre o mesmo número do display.
+
+Falas, na ordem em que aparecem (todo integrante deve conseguir explicar cada uma):
+
+1. **O problema.** Na chuva forte, quem cuida de uma rua que alaga não sabe quem está bem, quem precisa de ajuda e quem ficou em silêncio. O Elo nasceu para esse momento.
+2. **O app do Elo.** No aplicativo do Elo, a liderança de cada rua responde em um toque: tudo bem, água subindo ou preciso de ajuda. A coordenação vê quem pediu ajuda e quais ruas não responderam.
+3. **O que faltava.** Falta um sinal medido no lugar: quanto a água já subiu no ponto crítico. É aí que entra a régua, a parte física do Elo.
+4. **O circuito.** A régua é um ESP32 com um sensor ultrassônico acima do córrego. O sensor mede a distância até a água, e o programa calcula o nível: três metros do sensor menos a distância medida.
+5. **O aviso no local.** No local, três LEDs, um display e o buzzer avisam quem está perto, mesmo sem internet. O limite é um metro e vinte, o mesmo que o aplicativo usa na aba Plano para a rota de saída.
+6. **O envio.** A cada leitura, o ESP32 monta a mensagem no formato da API do grupo, com o identificador da régua e o nível em metros, e envia por Wi-Fi. É dessa API que o aplicativo e o painel leem a régua.
+7. **A API publicada.** A API do grupo já está publicada na nuvem. O programa aponta para ela, com uma chave de demonstração que vai ser trocada depois da entrega. Para mudar de servidor, mudam só o endereço e a chave.
+8. **A simulação ligada.** Vamos ver funcionando. A duzentos e cinquenta centímetros da água, o nível é cinquenta centímetros: normal, LED verde, silêncio. No monitor serial, o Wi-Fi conecta e a primeira leitura chega à API: envio OK, HTTP duzentos e quatro. O asterisco no display confirma.
+9. **Atenção.** Agora a água sobe. A duzentos centímetros, o nível chega a um metro: atenção. LED amarelo, um bip curto a cada um segundo e meio, e uma leitura sai na hora, porque a situação mudou. O aplicativo mostra "em atenção" nesse mesmo ponto.
+10. **No limite.** A cento e oitenta e um centímetros, um metro e dezenove: ainda atenção. A cento e oitenta, um metro e vinte: acima do limite, LED vermelho e bip rápido. O alarme dispara exatamente no limite, como no aplicativo.
+11. **Acima do limite.** A cento e cinquenta e oito centímetros, o nível é um metro e quarenta e dois, o número do exemplo do aplicativo. Acima do limite, a leitura sai a cada dez segundos, e cada envio continua chegando à API, mesmo com o buzzer tocando.
+12. **A água baixa.** Quando a água baixa, o alarme para sozinho e o intervalo volta a trinta segundos.
+13. **Fecho.** A régua avisa no local, mesmo sem internet, e dá ao Elo um número medido: o sinal para seguir o plano da rua. E esse número já chega à API do grupo, de onde o aplicativo e o painel leem.
+
 ## Conferência da entrega
 
 A entrega é feita por um integrante só, pelo Teams, com três itens:
 
 - [ ] Link público do projeto no Wokwi: https://wokwi.com/projects/479922926737544193 (aberto sem login em 15/11/2026; conferir de novo em janela anônima antes de enviar).
-- [ ] Link do vídeo, com até 4 minutos, aberto para quem tem o link.
+- [ ] Link do vídeo, com até 4 minutos, aberto para quem tem o link. O vídeo está gravado (2 min 33 s); falta subir e colar o link.
 - [ ] Arquivo `integrantes.txt` com nome completo e RM de todos.
 
 Prazo: 19/11/2026, 23h55.

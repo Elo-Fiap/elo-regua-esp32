@@ -2,7 +2,7 @@
 
 Segue o formato do `prompts.md` do app e do Elo Alertas.
 
-Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste repositório foram gerados com IA** (Claude Code, da Anthropic), a partir dos pedidos do Bruno, e testados na simulação do Wokwi. Todos os integrantes precisam saber explicar cada linha do `sketch.ino`.
+Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste repositório foram gerados com IA** (Claude Code, da Anthropic), a partir dos pedidos do Bruno, e testados na simulação do Wokwi. **O vídeo da entrega também foi feito com IA**: a tela foi gravada por automação e a narração é a voz do Bruno clonada por IA, com a autorização dele (linha de 19/11/2026). Todos os integrantes precisam saber explicar cada linha do `sketch.ino`.
 
 ## Registro
 
@@ -23,6 +23,7 @@ Transparência: **o programa, o diagrama, o roteiro do vídeo e o README deste r
 | 15/11/2026 | Bruno | Claude Code | Conferir se o app já lê a régua pela API e revisar a régua contra o app, a documentação e os requisitos da GS | Conferência com a API em C# no `README.md`, roteiro do vídeo atualizado (o app lê da API em C#; aviso na aba Agora; "em atenção") e issue 4 do `elo-app` | A conferir |
 | 15/11/2026 | Bruno | Claude Code | Levantar as pendências da régua frente ao app e aos requisitos e aplicar o que faltava | Envio por Wi-Fi no `sketch.ino` (fila e tarefa no outro núcleo, HTTP simples, 2xx = sucesso, marcador no LCD), testado contra um serviço de eco; `README.md`, roteiro e este registro | A conferir |
 | 18/11/2026 | Bruno | Claude Code | Apontar a régua para a API publicada pelo João (http://elo-api-fiap.azurewebsites.net), com a chave de demonstração, testar o envio de verdade e salvar | `sketch.ino` (endereço, chave, espera por envio de 5 s para 8 s e comentários), projeto no Wokwi, `README.md`, roteiro e este registro. Teste: 11 envios com 204 e o `GET /regua` devolvendo o nível da régua | A conferir |
+| 18 e 19/11/2026 | Bruno | Claude Code, com Playwright, ffmpeg, Whisper e VoxCPM2 | Gravar o vídeo da entrega seguindo um guia de vídeo tutorial narrado, com a voz do Bruno | Vídeo de 2 min 33 s. A tela (cartelas com prints do app, o projeto no Wokwi e a página pública da API) foi gravada por um navegador automático. A narração é a voz do Bruno clonada por IA (motor VoxCPM2, licença Apache-2.0) a partir de uma amostra de 28 s gravada por ele, com a autorização dele. Cada fala foi conferida com o Whisper. Falas em [`roteiro-video.md`](./roteiro-video.md) | Três versões até a aprovada pelo Bruno. A primeira voz clonada (outro motor, amostra gravada muito baixo) saiu com chiado, pausas artificiais e "ESP32" mal falado. Nas falas, "app" virou "aplicativo" e "id" virou "identificador", porque o motor lia "app" igual a "API" |
 
 ## O que a IA decidiu sozinha e a equipe precisa conferir
 
@@ -43,6 +44,9 @@ A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do
 - **"A API não existe."** A revisão de 08/11/2026 e a issue 4 do `elo-app` disseram que a API que recebe as leituras ainda não existia. O Elo Alertas já tinha a rota `POST /leituras` desde 06/11/2026; a IA tinha olhado só o repositório do app. Corrigido em 09/11/2026 neste repositório e nas issues 4 e 1 do `elo-app`. A issue 1 dizia, em "Depende de", que as rotas eram da API de C#.
 - **"O app vai ler pelo Elo Alertas."** O roteiro do vídeo (08/11/2026) dizia que o app leria a régua pelo Elo Alertas. O app lê pela API em C#, que também recebe as leituras. Corrigido em 15/11/2026.
 
+- **Narração do vídeo.** A conferência automática da voz clonada usava uma lista de vocabulário que fazia o Whisper escrever "ESP32" mesmo quando a voz dizia outra coisa; o Bruno ouviu o erro. A conferência passou a ser feita sem a lista. O Whisper confere as palavras, não o timbre nem a naturalidade: quem aprovou a voz foi o Bruno, ouvindo.
+- **"A simulação só tem Wi-Fi com login no Wokwi."** Em 17/11/2026 a IA concluiu isso e pediu o login do Bruno várias vezes. Na noite de 18/11/2026 a simulação enviou para a API sem login; o que falha de vez em quando é a rede da simulação ao ligar, com ou sem login. A gravação passou a testar o envio antes de cada tomada.
+
 ## O que foi testado na simulação
 
 - Níveis de 0,00 m a 2,98 m, com a virada exata em 1,20 m (1,19 m ainda é atenção).
@@ -54,5 +58,6 @@ A altura do sensor (3,00 m) e o limite (1,20 m) batem com a régua de exemplo do
 
 ## O que não foi feito
 
+- No vídeo, o app aparece em prints do repositório do app, não rodando ao vivo. A leitura chegando ao sistema do grupo aparece pela página pública da API (http://elo-api-fiap.azurewebsites.net), que mostra o mesmo número do display da régua.
 - A falha de rede (endereço fora do ar) e a API acordando do plano gratuito no meio da simulação não foram simuladas. O envio para o Elo Alertas não foi testado: a régua manda para a API em C#, de onde o app e o painel leem. O app e o painel mostrando a leitura enviada não foram conferidos aqui.
 - A conexão segura (HTTPS). Em 06/11/2026 ela levou cerca de 7 segundos no ESP32 simulado e falhou enquanto o buzzer tocava; por isso o envio é em HTTP simples, e a API publicada aceita HTTP.

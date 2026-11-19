@@ -22,7 +22,7 @@ Parte de Physical Computing: IoT & IoB do projeto Elo (Global Solution 2026.2, F
 | Quem recebe a leitura | A API em C#, publicada em http://elo-api-fiap.azurewebsites.net. É dela que o app e o painel leem a régua. O Elo Alertas tem a mesma rota, mas a régua não manda para ele |
 | Envio da leitura pela rede | **Ligado à API do grupo e testado** em 18/11/2026: o programa aponta para a API publicada (Azure, plano gratuito), com uma chave de demonstração. 11 envios, todos com resposta 204, entre 1,2 s e 1,7 s, seis deles com o buzzer tocando, e o `GET /regua` devolveu o nível que a régua simulada mandou (0,50 m e depois 1,42 m). A chave vai ser trocada depois da entrega. Veja [Para quem cuida da API](#para-quem-cuida-da-api) |
 | App | Já mostra a régua: aviso na aba Agora acima do limite, "em atenção" a partir de 1,00 m, atualização a cada 30 s (10 s acima do limite). Mostra o número da régua quando `EXPO_PUBLIC_API_URL` aponta para a API publicada; sem isso, dado de exemplo |
-| Vídeo de até 4 minutos | A gravar. Roteiro em [`roteiro-video.md`](./roteiro-video.md) |
+| Vídeo de até 4 minutos | Gravado em 19/11/2026, com 2 min 33 s. O link entra na entrega do Teams. Roteiro e falas em [`roteiro-video.md`](./roteiro-video.md) |
 | Entrega no Teams | Até 19/11/2026, 23h55 |
 
 ## Onde entra no Elo
@@ -310,7 +310,7 @@ Um integrante só envia, até 19/11/2026, 23h55:
 
 ## Uso de IA
 
-O programa, o circuito, o roteiro do vídeo e este README foram gerados com Claude Code, a partir dos pedidos do Bruno, e testados na simulação. O registro, o que a IA decidiu sozinha, os erros que ela cometeu e o que a equipe precisa conferir estão em [`prompts.md`](./prompts.md). Todos os integrantes precisam saber explicar cada linha do `sketch.ino`.
+O programa, o circuito, o roteiro do vídeo e este README foram gerados com Claude Code, a partir dos pedidos do Bruno, e testados na simulação. O vídeo também foi feito com IA: a tela foi gravada por um navegador automático e a narração é a voz do Bruno clonada por IA, com a autorização dele. O registro, o que a IA decidiu sozinha, os erros que ela cometeu e o que a equipe precisa conferir estão em [`prompts.md`](./prompts.md). Todos os integrantes precisam saber explicar cada linha do `sketch.ino`.
 
 ## Integrantes
 
